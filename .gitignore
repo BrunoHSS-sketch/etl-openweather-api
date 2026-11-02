@@ -9,3 +9,5 @@ wheels/
 # Virtual environments
 /config/.venv
 /data
+config/.venv
+data
