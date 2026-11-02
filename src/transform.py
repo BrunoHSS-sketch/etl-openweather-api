@@ -14,7 +14,7 @@ load_dotenv(env_path)
 
 path_save_dataframe = Path(__file__).parent.parent / "data" / "validated"
 path_name = Path(__file__).parent.parent / "data" / "raw" / "weather_data.json"
-columns_name_to_drop = ["weather","weather_icon", "sys.type"]
+columns_name_to_drop = ["weather","weather_icon"]
 columns_name_to_rename = {
     "base": "base",
     "visibility": "visibility",
@@ -37,12 +37,12 @@ columns_name_to_rename = {
     "wind.deg": "wind_deg",
     "wind.gust": "wind_gust",
     "clouds.all": "clouds",
-    "sys.type": "sys.type",
     "sys.id": "sys_id",
     "sys_country": "country",
     "sys.sunrise": "sunrise",
     "sys.sunset": "sunset"
 }
+columns_normalize_datetime = ["datetime", "sunrise", "sunset"]
 
 def create_dataframe(path_name: str | Path) -> pd.DataFrame:
     logger.info("Criando o DataFrame com base no json")
@@ -93,7 +93,10 @@ def rename_columns(df: pd.DataFrame, columns_name: dict[str,str]) -> pd.DataFram
 def normalize_datetime_column(df: pd.DataFrame, columns_name: list[str]) -> pd.DataFrame:
     logger.info(f"Convertendo as colunas para Datetime: {columns_name}")
     for name in columns_name:
-        df[name] = pd.to_datetime(df[name], unit="s", utc=True).dt.tz_convert(os.getenv('UTC'))
+        tz = os.getenv("UTC") or "UTC"
+        df[name] = (
+            pd.to_datetime(df[name], unit="s", utc=True).dt.tz_convert(tz)
+        )
     logger.info("Colunas convertidas para Datetime")
     return df
 
@@ -102,5 +105,31 @@ def save_dataframe(df: pd.DataFrame, path_save_dataframe: str | Path) -> None:
     path = Path(path_save_dataframe)
     path.mkdir(parents=True, exist_ok=True)
     file_path = path / "weather.parquet"
-    df.to_parquet(file_path, engine="pyarrow")
+    df.to_parquet(file_path)
     logger.info("Arquivo salvo com sucesso")
+
+
+def data_transformation() -> None:
+    logger.info("Inicializando a transformação")
+
+    df = create_dataframe(path_name)
+    print("Passo 1 ok: create_dataframe")
+
+    df = normalize_dataframe(df)
+    print("Passo 2 ok: normalize_dataframe")
+
+    df = drop_columns(df, columns_name_to_drop)
+    print("Passo 3 ok: drop_columns")
+
+    df = rename_columns(df, columns_name_to_rename)
+    print("Passo 4 ok: rename_columns")
+
+    df = normalize_datetime_column(df, columns_normalize_datetime)
+    print("Passo 5 ok: normalize_datetime_column")
+
+    save_dataframe(df, path_save_dataframe)
+    print("Passo 6 ok: save_dataframe")
+
+    logger.success("Transformação concluída com sucesso!")
+
+data_transformation()
