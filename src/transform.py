@@ -111,25 +111,12 @@ def save_dataframe(df: pd.DataFrame, path_save_dataframe: str | Path) -> None:
 
 def data_transformation() -> None:
     logger.info("Inicializando a transformação")
-
     df = create_dataframe(path_name)
-    print("Passo 1 ok: create_dataframe")
-
     df = normalize_dataframe(df)
-    print("Passo 2 ok: normalize_dataframe")
-
     df = drop_columns(df, columns_name_to_drop)
-    print("Passo 3 ok: drop_columns")
-
     df = rename_columns(df, columns_name_to_rename)
-    print("Passo 4 ok: rename_columns")
-
     df = normalize_datetime_column(df, columns_normalize_datetime)
-    print("Passo 5 ok: normalize_datetime_column")
-
     save_dataframe(df, path_save_dataframe)
-    print("Passo 6 ok: save_dataframe")
-
     logger.success("Transformação concluída com sucesso!")
 
 data_transformation()
