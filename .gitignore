@@ -9,6 +9,8 @@ wheels/
 # Virtual environments
 /config/.venv
 /data
-config/.venv
+config/.env
 data
 .venv
+.vscode
+.idea
